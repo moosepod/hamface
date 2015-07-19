@@ -51,15 +51,15 @@ static void main_window_load(Window *window) {
   // Setup the main time layer
   Layer *window_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_bounds(window_layer);
-  s_time_layer = text_layer_create(GRect(0,5, window_bounds.size.w,50));
+  s_time_layer = text_layer_create(GRect(0,0, window_bounds.size.w,50));
   text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
-  text_layer_set_background_color(s_time_layer, GColorClear);
-  text_layer_set_text_color(s_time_layer, GColorBlack);
+  text_layer_set_background_color(s_time_layer, GColorBlack);
+  text_layer_set_text_color(s_time_layer, GColorWhite);
   text_layer_set_text_alignment(s_time_layer,GTextAlignmentCenter);
   text_layer_set_text(s_time_layer, "00:00");
   
   // Setup the date layer, right below the UTC time area
-  s_date_layer = text_layer_create(GRect(18,50, 200,100));
+  s_date_layer = text_layer_create(GRect(18,50, 200,80));
   text_layer_set_font(s_date_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_background_color(s_date_layer, GColorClear);
   text_layer_set_text_color(s_date_layer, GColorBlack);
@@ -75,12 +75,12 @@ static void main_window_load(Window *window) {
   text_layer_set_text(s_utctime_layer, "00:00 JAN 01");
 
   // Setup the APRS info layer
-  s_aprs_layer = text_layer_create(GRect(0,100,window_bounds.size.w,200));
+  s_aprs_layer = text_layer_create(GRect(0,80,window_bounds.size.w,200));
   text_layer_set_font(s_utctime_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
   text_layer_set_background_color(s_aprs_layer, GColorClear);
   text_layer_set_text_color(s_aprs_layer, GColorBlack);
   text_layer_set_text_alignment(s_aprs_layer,GTextAlignmentCenter);
-  text_layer_set_text(s_aprs_layer, "KC2ZUF 10mi NE");
+  text_layer_set_text(s_aprs_layer, "KC2ZUF 10mi NE\nW2PE 15mi SW\nKZ2ZZZ 25mi S");
 
  
 
