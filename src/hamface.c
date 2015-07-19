@@ -12,6 +12,7 @@ static Window *s_main_window;
 static TextLayer *s_time_layer;
 static TextLayer *s_date_layer;
 static TextLayer *s_utctime_layer;
+static TextLayer *s_aprs_layer;
 
 // Update the local time layer from the pebble's time
 static void update_time() {
@@ -73,11 +74,22 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(s_utctime_layer,GTextAlignmentCenter);
   text_layer_set_text(s_utctime_layer, "00:00 JAN 01");
 
+  // Setup the APRS info layer
+  s_aprs_layer = text_layer_create(GRect(0,100,window_bounds.size.w,200));
+  text_layer_set_font(s_utctime_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
+  text_layer_set_background_color(s_aprs_layer, GColorClear);
+  text_layer_set_text_color(s_aprs_layer, GColorBlack);
+  text_layer_set_text_alignment(s_aprs_layer,GTextAlignmentCenter);
+  text_layer_set_text(s_aprs_layer, "KC2ZUF 10mi NE");
+
+ 
+
   // Add all layers to main window
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_utctime_layer));
-  
+  layer_add_child(window_layer, text_layer_get_layer(s_aprs_layer));
+ 
   // Initial refresh of times.
   update_time();
   update_utc_time();
@@ -89,7 +101,7 @@ static void main_window_unload(Window *window) {
   text_layer_destroy(s_time_layer);
   text_layer_destroy(s_date_layer);
   text_layer_destroy(s_utctime_layer);
-
+  text_layer_destroy(s_aprs_layer);
 }
 
 // Update any information that needs updating when time changes
