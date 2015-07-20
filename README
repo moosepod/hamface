@@ -6,4 +6,4 @@ A Pebble watchface that is useful for hams.
 Features:
 - Dual local/UTC time and date
 - (Goal) local temperature
-- (Goal) nearby APRS stations 
+- (Goal) band conditions
