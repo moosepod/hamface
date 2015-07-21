@@ -6,13 +6,16 @@
   "versionLabel": "1.0",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
+ "capabilities": 
+  [ "location" ],
   "watchapp": {
     "watchface": true
   },
   "appKeys": {
-    "dummy": 0
+    "KEY_TEMPERATURE_C": 0,
+    "KEY_TEMPERATURE_F": 1
   },
   "resources": {
-    "media": []
+    "media": [] 
   }
 }

@@ -3,6 +3,8 @@
 /* Main file for hamface Pebble watch face.
   
    Displays local and utc time/date.
+   
+   Weather code adapted from https://github.com/pebble-examples/pebblekit-js-weather/
 
    by Matt Christensen (mchristensen@moosepod.com)
 */  
@@ -17,6 +19,54 @@ static TextLayer *s_utctime_layer;
 static TextLayer *s_band_layer;
 static TextLayer *s_day_band_layer;
 static TextLayer *s_night_band_layer;
+
+static char temperature_buffer[8];
+
+#define KEY_TEMPERATURE 0
+
+/// Pebble.js connectivity code
+#define KEY_TEMPERATURE_C 0
+#define KEY_TEMPERATURE_F 1
+
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  // Read first item
+  Tuple *t = dict_read_first(iterator);
+
+  // For all items
+  while(t != NULL) {
+    // Which key was received?
+    switch(t->key) {
+    case KEY_TEMPERATURE_C:
+	snprintf(temperature_buffer, sizeof(temperature_buffer), "%dC", (int)t->value->int32);
+  	break;
+    case KEY_TEMPERATURE_F:
+        snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)t->value->int32);
+        break;
+    default:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
+      break;
+    }
+
+    // Look for next item
+    t = dict_read_next(iterator);
+  }
+
+  text_layer_set_text(s_temp_layer,temperature_buffer);
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
+/// General setup and clock code
 
 // Update the local time layer from the pebble's time
 static void update_time() {
@@ -157,6 +207,13 @@ static void init() {
   
   // Register so our tick handler is called every minute
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+
+  app_message_register_inbox_received(inbox_received_callback);
+  app_message_register_inbox_dropped(inbox_dropped_callback);
+  app_message_register_outbox_failed(outbox_failed_callback);
+  app_message_register_outbox_sent(outbox_sent_callback);
+
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 }
 
 static void deinit() {
