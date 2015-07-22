@@ -20,13 +20,21 @@ static TextLayer *s_band_layer;
 static TextLayer *s_day_band_layer;
 static TextLayer *s_night_band_layer;
 
-static char temperature_buffer[8];
-
-#define KEY_TEMPERATURE 0
+static char temperature_buffer[8] = "";
+static char day_band_buffer[50] = "";
+static char night_band_buffer[50] = "";
 
 /// Pebble.js connectivity code
-#define KEY_TEMPERATURE_C 0
-#define KEY_TEMPERATURE_F 1
+enum Keys {
+	KEY_TEMPERATURE_C = 0x0,
+	KEY_TEMPERATURE_F = 0x1,
+	KEY_BANDS_DAY     = 0x2,
+	KEY_BANDS_NIGHT   = 0x3
+};
+
+static void set_bands_text() {
+	text_layer_set_text(s_band_layer,"80m-40m\n30m-20m\n17m-15m\n12m-10m");
+}
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   // Read first item
@@ -37,11 +45,18 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     // Which key was received?
     switch(t->key) {
     case KEY_TEMPERATURE_C:
-	snprintf(temperature_buffer, sizeof(temperature_buffer), "%dC", (int)t->value->int32);
-  	break;
+ 	break;
     case KEY_TEMPERATURE_F:
         snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)t->value->int32);
         break;
+    case KEY_BANDS_DAY:
+	set_bands_text();
+        snprintf(day_band_buffer, sizeof(day_band_buffer), "%s", t->value->cstring);
+	break;
+    case KEY_BANDS_NIGHT:
+	set_bands_text();
+        snprintf(night_band_buffer, sizeof(night_band_buffer), "%s", t->value->cstring);
+	break;
     default:
       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
       break;
@@ -49,9 +64,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     // Look for next item
     t = dict_read_next(iterator);
-  }
-
+    }
   text_layer_set_text(s_temp_layer,temperature_buffer);
+  text_layer_set_text(s_day_band_layer,day_band_buffer);
+  text_layer_set_text(s_night_band_layer,night_band_buffer);
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
@@ -121,7 +137,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text(s_date_layer, "JAN 00");
  
   // Setup the temp layer, to the right of the date layer
-  s_temp_layer = text_layer_create(GRect(window_bounds.size.w-48,42,30,30));
+  s_temp_layer = text_layer_create(GRect(window_bounds.size.w-48,42,40,30));
   text_layer_set_font(s_temp_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_background_color(s_temp_layer, GColorClear);
   text_layer_set_text_color(s_temp_layer, GColorWhite);
@@ -142,7 +158,6 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_band_layer, GColorClear);
   text_layer_set_text_color(s_band_layer, GColorBlack);
   text_layer_set_text_alignment(s_band_layer,GTextAlignmentLeft);
-  //text_layer_set_text(s_band_layer, "80m-40m\n30m-20m\n17m-15m\n12m-10m");
   text_layer_set_text(s_band_layer,"\n    Loading...\n    Data from hamqsl.com\n");
 
   s_day_band_layer = text_layer_create(GRect(65,75,30,60));
@@ -150,25 +165,22 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_day_band_layer, GColorClear);
   text_layer_set_text_color(s_day_band_layer, GColorBlack);
   text_layer_set_text_alignment(s_day_band_layer,GTextAlignmentLeft);
-//  text_layer_set_text(s_day_band_layer, "Good\nGood\nFair\nPoor");
 
   s_night_band_layer = text_layer_create(GRect(100,75,30,60));
   text_layer_set_font(s_night_band_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_background_color(s_night_band_layer, GColorClear);
   text_layer_set_text_color(s_night_band_layer, GColorBlack);
   text_layer_set_text_alignment(s_night_band_layer,GTextAlignmentLeft);
-//  text_layer_set_text(s_night_band_layer, "Good\nGood\nFair\nPoor");
 
   // Add all layers to main window
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_utctime_layer));
-  layer_add_child(window_layer, text_layer_get_layer(s_temp_layer));
-  layer_add_child(window_layer, text_layer_get_layer(s_utctime_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_band_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_day_band_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_night_band_layer));
-
+  layer_add_child(window_layer, text_layer_get_layer(s_temp_layer));
+  
   // Initial refresh of times.
   update_time();
   update_utc_time();

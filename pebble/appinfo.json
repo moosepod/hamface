@@ -13,7 +13,9 @@
   },
   "appKeys": {
     "KEY_TEMPERATURE_C": 0,
-    "KEY_TEMPERATURE_F": 1
+    "KEY_TEMPERATURE_F": 1,
+    "KEY_BANDS_DAY": 2,
+    "KEY_BANDS_NIGHT": 3
   },
   "resources": {
     "media": [] 

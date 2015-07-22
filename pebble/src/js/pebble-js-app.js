@@ -7,6 +7,28 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
+
+/// Band fetching. We fetch bands, then weather after bands completes
+/// as there were random errors being thrown when they were being called
+/// at the same time. 
+function getBands() {
+	var dictionary = {
+		'KEY_BANDS_DAY': 'fair\ngood\ngood\nfair',
+		'KEY_BANDS_NIGHT': 'good\nfair\nfair\npoor'
+	};
+	Pebble.sendAppMessage(dictionary,
+		function(e) {
+			console.log('Band info sent to Pebble successfully.');
+			getWeather(); // Once we finish our bands fetch, grab weather
+		},
+		function(e) {
+			console.log('Error sending band info to Pebble. Error:' + e.message);
+			getWeather(); // Once we finish bands, get weather.
+		}
+	);
+}
+
+/// Weather fetching
 function locationSuccess(pos) {
   // We will request the weather here
  // Construct URL
@@ -35,7 +57,7 @@ function locationSuccess(pos) {
           console.log('Weather info sent to Pebble successfully!');
         },
         function(e) {
-          console.log('Error sending weather info to Pebble!');
+          console.log('Error sending weather info to Pebble! Error: ' + e.message);
        }
      );
    });
@@ -45,6 +67,7 @@ function locationError(err) {
   console.log('Error requesting location!');
 }
 
+// Geolocate, then make web service call to fetch weather
 function getWeather() {
   navigator.geolocation.getCurrentPosition(
     locationSuccess,
@@ -58,8 +81,8 @@ Pebble.addEventListener('ready',
   function(e) {
     console.log('PebbleKit JS ready!');
 
-    // Get the initial weather
-    getWeather();
+    // Get the initial weather and band data
+    getBands();
   }
 );
 
@@ -67,7 +90,7 @@ Pebble.addEventListener('ready',
 Pebble.addEventListener('appmessage',
   function(e) {
     console.log('AppMessage received!');
-      getWeather();
+      getBands();
     }                     
 );
 
