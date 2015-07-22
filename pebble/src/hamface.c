@@ -20,7 +20,7 @@ static TextLayer *s_band_layer;
 static TextLayer *s_day_band_layer;
 static TextLayer *s_night_band_layer;
 
-static char temperature_buffer[8] = "";
+static char temperature_buffer[8] = "...";
 static char day_band_buffer[50] = "";
 static char night_band_buffer[50] = "";
 
@@ -48,6 +48,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
  	break;
     case KEY_TEMPERATURE_F:
         snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)t->value->int32);
+	text_layer_set_text_color(s_temp_layer,GColorWhite); // Reset to white when we refresh
         break;
     case KEY_BANDS_DAY:
 	set_bands_text();
@@ -143,7 +144,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_color(s_temp_layer, GColorWhite);
   text_layer_set_text_alignment(s_temp_layer,GTextAlignmentLeft);
   text_layer_set_text(s_temp_layer, "...");
-
+  
   // Setup the UTC time layer
   s_utctime_layer = text_layer_create(GRect(0,window_bounds.size.h-30,window_bounds.size.w,30));
   text_layer_set_font(s_utctime_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
@@ -214,6 +215,16 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
     // Send the message!
     app_message_outbox_send();
+  } else {
+	// "Age" time at other intervals on a color pebble
+#ifdef PBL_COLOR
+	if (tick_time->tm_min % 10 == 0) {
+		text_layer_set_text_color(s_temp_layer, GColorLightGray);
+	} else if (tick_time->tm_min % 20 == 0) {
+		text_layer_set_text_color(s_temp_layer, GColorDarkGray);
+	}
+#endif  
+
   }
 }
 
